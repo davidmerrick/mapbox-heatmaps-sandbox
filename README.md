@@ -1,4 +1,4 @@
-Display EXIF data from your photos on a heatmap.
+Play with parameters for a heatmap, including radius and opacity.
 
 ![](img/demo.gif)
 

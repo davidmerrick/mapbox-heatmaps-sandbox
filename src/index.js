@@ -47,19 +47,26 @@ map.on('load', function () {
 });
 
 function setRadius(value){
-    map.setPaintProperty(LAYER_ID, "heatmap-radius", value)
+    map.setPaintProperty(LAYER_ID, "heatmap-radius", value);
+    document.getElementById("radius-value").innerText = value;
 }
 
 function setOpacity(value){
-    map.setPaintProperty(LAYER_ID, "heatmap-opacity", value)
+    map.setPaintProperty(LAYER_ID, "heatmap-opacity", value);
+    document.getElementById("opacity-value").innerText = value;
 }
 
-document.getElementById('radius-slider').addEventListener('input', function(e) {
+document.getElementById("radius-slider").addEventListener('input', function(e) {
     var value = parseInt(e.target.value, DEFAULT_HEATMAP_RADIUS);
     setRadius(value);
 });
 
-document.getElementById('opacity-slider').addEventListener('input', function(e) {
+document.getElementById("opacity-slider").addEventListener('input', function(e) {
     var value = parseFloat(e.target.value);
     setOpacity(value);
+});
+
+document.addEventListener("DOMContentLoaded", function(event){
+    document.getElementById("radius-value").innerText = DEFAULT_HEATMAP_RADIUS;
+    document.getElementById("opacity-value").innerText = DEFAULT_HEATMAP_OPACITY;
 });
