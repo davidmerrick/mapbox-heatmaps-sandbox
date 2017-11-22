@@ -1,0 +1,17 @@
+{
+  "name": "exif-heatmaps-mapbox",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "repository": "git@github.com:davidmerrick/2017-nyc-trip.git",
+  "author": "David Merrick <david@david-merrick.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "babel-register": "^6.26.0",
+    "dotenv-webpack": "^1.5.4",
+    "path": "^0.12.7",
+    "webpack": "^3.8.1"
+  },
+  "dependencies": {
+    "mapbox-gl": "^0.41.0"
+  }
+}
