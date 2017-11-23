@@ -2,14 +2,12 @@ var mapboxgl = require('mapbox-gl')
 
 mapboxgl.accessToken = process.env.MAPBOX_TOKEN;
 
-var MAP_CENTER_LAT = process.env.MAP_CENTER_LAT || -74.0060;
-var MAP_CENTER_LONG = process.env.MAP_CENTER_LONG || 40.75;
-var MAP_ZOOM = process.env.MAP_ZOOM || 11
-var LAYER_ID = "exif-heatmap";
-var DEFAULT_HEATMAP_RADIUS = 20;
-var DEFAULT_HEATMAP_OPACITY = .75;
-var START_DATE;
-var END_DATE;
+const MAP_CENTER_LAT = process.env.MAP_CENTER_LAT || -74.0060;
+const MAP_CENTER_LONG = process.env.MAP_CENTER_LONG || 40.75;
+const MAP_ZOOM = process.env.MAP_ZOOM || 11
+const LAYER_ID = "exif-heatmap";
+const DEFAULT_HEATMAP_RADIUS = 20;
+const DEFAULT_HEATMAP_OPACITY = .75;
 var exifData;
 
 var map = new mapboxgl.Map({
@@ -46,7 +44,13 @@ map.on('load', () => {
         .then(data => {
             exifData = data;
 
-            initializeStartAndEndDates(exifData);
+            let sortedFeatures = exifData.features.sort((a, b) => {
+                let aDate = new Date(a.properties.gpsTime);
+                let bDate = new Date(b.properties.gpsTime);
+                return aDate - bDate;
+            });
+
+            exifData.features = sortedFeatures;
 
             map.addSource('exif', {
                 "type": "geojson",
@@ -56,30 +60,15 @@ map.on('load', () => {
         });
 });
 
-function initializeStartAndEndDates(exifData){
-    let sorted = exifData.features.sort((a, b) => {
-        let aDate = new Date(a.properties.gpsTime);
-        let bDate = new Date(b.properties.gpsTime);
-        return aDate - bDate;
-    });
-    START_DATE = new Date(sorted[0].properties.gpsTime);
-    END_DATE = new Date(sorted[sorted.length - 1].properties.gpsTime);
-}
-
-// Filter times within 5% of this percentage value
-function filterTime(tripPercentage){
-    let filteredFeatures = exifData.features.filter(item => {
-        let currentDate = new Date(item.properties.gpsTime);
-        let hourDelta = Math.abs(currentDate - START_DATE) / 36e5;
-        let hourDeltaOverall = Math.abs(START_DATE - END_DATE) / 36e5;
-        let currentTripPercentage = hourDelta/hourDeltaOverall;
-        return Math.abs(tripPercentage/100 - currentTripPercentage) < .05;
-    });
+function filterTime(percentageValue){
+    tripPercentage = percentageValue/100;
+    indexAtPercentage = Math.floor(tripPercentage * (exifData.features.length - 1));
+    let sliced = exifData.features.slice(0, indexAtPercentage);
     let clonedData = Object.assign({}, exifData);
-    clonedData.features = filteredFeatures;
+    clonedData.features = sliced;
     map.getSource('exif').setData(clonedData);
 
-    document.getElementById("time-value").innerText = `${tripPercentage}%`;
+    document.getElementById("time-value").innerText = `${percentageValue}%`;
 }
 
 function setRadius(value){
