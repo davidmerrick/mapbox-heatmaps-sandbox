@@ -1,5 +1,7 @@
 Play with parameters for a heatmap, including radius and opacity.
 
+Demo: [Heatmap Sandbox](https://projects.david-merrick.com/2017/heatmap-sandbox/)
+
 ![](img/demo.gif)
 
 # Getting started
