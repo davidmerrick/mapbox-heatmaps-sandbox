@@ -8,9 +8,9 @@ var MAP_ZOOM = process.env.MAP_ZOOM || 11
 var LAYER_ID = "exif-heatmap";
 var DEFAULT_HEATMAP_RADIUS = 20;
 var DEFAULT_HEATMAP_OPACITY = .75;
-var START_DATE = new Date("2017:10:07 12:34:57");
-var END_DATE = new Date("2017:10:10 15:33:49");
-var exifData = null;
+var START_DATE;
+var END_DATE;
+var exifData;
 
 var map = new mapboxgl.Map({
     container: 'map',
@@ -40,35 +40,46 @@ var heatmapLayer = {
     }
 };
 
-map.on('load', function () {
+map.on('load', () => {
     fetch("exif.geojson")
-        .then(function(response){
-            response.json().then(function(data){
-                exifData = data;
-                map.addSource('exif', {
-                    "type": "geojson",
-                    "data": exifData
-                });
-            })
-    });
+        .then(response => response.json())
+        .then(data => {
+            exifData = data;
 
-    map.addLayer(heatmapLayer, 'waterway-label');
+            initializeStartAndEndDates(exifData);
+
+            map.addSource('exif', {
+                "type": "geojson",
+                "data": exifData
+            });
+            map.addLayer(heatmapLayer, 'waterway-label');
+        });
 });
 
-function hourDelta(date1, date2){
-    return Math.abs(date1 - date2) / 36e5;
+function initializeStartAndEndDates(exifData){
+    let sorted = exifData.features.sort((a, b) => {
+        let aDate = new Date(a.properties.gpsTime);
+        let bDate = new Date(b.properties.gpsTime);
+        return aDate - bDate;
+    });
+    START_DATE = new Date(sorted[0].properties.gpsTime);
+    END_DATE = new Date(sorted[sorted.length - 1].properties.gpsTime);
 }
 
 // Filter times within 5% of this percentage value
 function filterTime(tripPercentage){
-    map.setFilter(LAYER_ID, function(item){
-        var currentDate = new Date(item.properties.exif.DateTimeOriginal);
-        var hourDelta = hourDelta(currentDate, START_DATE);
-        var hourDeltaOverall = hourDelta(START_DATE, END_DATE);
-        var currentTripPercentage = hourDelta/hourDeltaOverall;
-        return Math.abs(tripPercentage - currentTripPercentage) < .05;
+    let filteredFeatures = exifData.features.filter(item => {
+        let currentDate = new Date(item.properties.gpsTime);
+        let hourDelta = Math.abs(currentDate - START_DATE) / 36e5;
+        let hourDeltaOverall = Math.abs(START_DATE - END_DATE) / 36e5;
+        let currentTripPercentage = hourDelta/hourDeltaOverall;
+        return Math.abs(tripPercentage/100 - currentTripPercentage) < .05;
     });
-    document.getElementById("time-value").innerText = tripPercentage;
+    let clonedData = Object.assign({}, exifData);
+    clonedData.features = filteredFeatures;
+    map.getSource('exif').setData(clonedData);
+
+    document.getElementById("time-value").innerText = `${tripPercentage}%`;
 }
 
 function setRadius(value){
@@ -81,22 +92,22 @@ function setOpacity(value){
     document.getElementById("opacity-value").innerText = value;
 }
 
-document.getElementById("radius-slider").addEventListener('input', function(e) {
+document.getElementById("radius-slider").addEventListener('input', e => {
     var value = parseInt(e.target.value, DEFAULT_HEATMAP_RADIUS);
     setRadius(value);
 });
 
-document.getElementById("opacity-slider").addEventListener('input', function(e) {
+document.getElementById("opacity-slider").addEventListener('input', e => {
     var value = parseFloat(e.target.value);
     setOpacity(value);
 });
 
-document.getElementById("time-slider").addEventListener('input', function(e) {
+document.getElementById("time-slider").addEventListener('input', e => {
     var value = parseInt(e.target.value);
     filterTime(value);
 });
 
-document.addEventListener("DOMContentLoaded", function(event){
+document.addEventListener("DOMContentLoaded", e => {
     document.getElementById("radius-value").innerText = DEFAULT_HEATMAP_RADIUS;
     document.getElementById("opacity-value").innerText = DEFAULT_HEATMAP_OPACITY;
 });
