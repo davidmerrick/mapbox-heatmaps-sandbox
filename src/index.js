@@ -10,6 +10,7 @@ var DEFAULT_HEATMAP_RADIUS = 20;
 var DEFAULT_HEATMAP_OPACITY = .75;
 var START_DATE = new Date("2017:10:07 12:34:57");
 var END_DATE = new Date("2017:10:10 15:33:49");
+var exifData = null;
 
 var map = new mapboxgl.Map({
     container: 'map',
@@ -40,9 +41,15 @@ var heatmapLayer = {
 };
 
 map.on('load', function () {
-    map.addSource('exif', {
-        "type": "geojson",
-        "data": "exif.geojson"
+    fetch("exif.geojson")
+        .then(function(response){
+            response.json().then(function(data){
+                exifData = data;
+                map.addSource('exif', {
+                    "type": "geojson",
+                    "data": exifData
+                });
+            })
     });
 
     map.addLayer(heatmapLayer, 'waterway-label');
