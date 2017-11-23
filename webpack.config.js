@@ -14,12 +14,12 @@ module.exports = {
             systemvars: true
         }),
         // Workaround for MapBox https://github.com/mapbox/mapbox-gl-js/issues/4359
-        new webpack.optimize.UglifyJsPlugin({
-            sourceMap: true,
-            compress: {
-                warnings: false,
-                comparisons: false,  // don't optimize comparisons
-            },
-        })
+        // new webpack.optimize.UglifyJsPlugin({
+        //     sourceMap: true,
+        //     compress: {
+        //         warnings: false,
+        //         comparisons: false,  // don't optimize comparisons
+        //     },
+        // })
     ]
 };

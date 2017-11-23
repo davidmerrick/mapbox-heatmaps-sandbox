@@ -8,6 +8,8 @@ var MAP_ZOOM = process.env.MAP_ZOOM || 11
 var LAYER_ID = "exif-heatmap";
 var DEFAULT_HEATMAP_RADIUS = 20;
 var DEFAULT_HEATMAP_OPACITY = .75;
+var START_DATE = new Date("2017:10:07 12:34:57");
+var END_DATE = new Date("2017:10:10 15:33:49");
 
 var map = new mapboxgl.Map({
     container: 'map',
@@ -46,6 +48,22 @@ map.on('load', function () {
     map.addLayer(heatmapLayer, 'waterway-label');
 });
 
+function hourDelta(date1, date2){
+    return Math.abs(date1 - date2) / 36e5;
+}
+
+// Filter times within 5% of this percentage value
+function filterTime(tripPercentage){
+    map.setFilter(LAYER_ID, function(item){
+        var currentDate = new Date(item.properties.exif.DateTimeOriginal);
+        var hourDelta = hourDelta(currentDate, START_DATE);
+        var hourDeltaOverall = hourDelta(START_DATE, END_DATE);
+        var currentTripPercentage = hourDelta/hourDeltaOverall;
+        return Math.abs(tripPercentage - currentTripPercentage) < .05;
+    });
+    document.getElementById("time-value").innerText = tripPercentage;
+}
+
 function setRadius(value){
     map.setPaintProperty(LAYER_ID, "heatmap-radius", value);
     document.getElementById("radius-value").innerText = value;
@@ -64,6 +82,11 @@ document.getElementById("radius-slider").addEventListener('input', function(e) {
 document.getElementById("opacity-slider").addEventListener('input', function(e) {
     var value = parseFloat(e.target.value);
     setOpacity(value);
+});
+
+document.getElementById("time-slider").addEventListener('input', function(e) {
+    var value = parseInt(e.target.value);
+    filterTime(value);
 });
 
 document.addEventListener("DOMContentLoaded", function(event){
