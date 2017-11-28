@@ -1,9 +1,7 @@
-var mapboxgl = require('mapbox-gl')
-
 mapboxgl.accessToken = process.env.MAPBOX_TOKEN;
 
-const MAP_CENTER_LAT = process.env.MAP_CENTER_LAT || -74.0060;
-const MAP_CENTER_LONG = process.env.MAP_CENTER_LONG || 40.75;
+const MAP_CENTER_LAT = process.env.MAP_CENTER_LAT || -71.0;
+const MAP_CENTER_LONG = process.env.MAP_CENTER_LONG || 42.4487;
 const MAP_ZOOM = process.env.MAP_ZOOM || 11
 const LAYER_ID = "exif-heatmap";
 const DEFAULT_HEATMAP_RADIUS = 20;
@@ -61,8 +59,8 @@ map.on('load', () => {
 });
 
 function filterTime(percentageValue){
-    tripPercentage = percentageValue/100;
-    indexAtPercentage = Math.floor(tripPercentage * (exifData.features.length - 1));
+    let tripPercentage = percentageValue/100;
+    let indexAtPercentage = Math.floor(tripPercentage * (exifData.features.length - 1));
     let sliced = exifData.features.slice(0, indexAtPercentage);
     let clonedData = Object.assign({}, exifData);
     clonedData.features = sliced;
